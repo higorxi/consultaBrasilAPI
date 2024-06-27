@@ -18,12 +18,25 @@ export class SchedulingService {
     private readonly paymentService: PaymentService,
   ) {}
 
+
+  async teste(any: any) {
+    const dadosUsuario = await this.paymentService.generateToken()
+
+  }
+
+
+
   async create(
     createSchedulingDto: any,
   ): Promise<{ image: string; copiaCola: string }> {
     {
       const { pessoais, agendamento } = createSchedulingDto;
 
+      const pixData: any = await this.paymentService.createPIX({
+        nome: pessoais.nome_completo,
+        documento: pessoais.cpf,
+      });
+      
       const personalInfo = new PersonalInfo();
       personalInfo.estado = pessoais.estado;
       personalInfo.cidade = pessoais.cidade;
@@ -48,10 +61,6 @@ export class SchedulingService {
 
       const savedPreference = await this.preferenceRepository.save(preference);
 
-      const pixData: any = await this.paymentService.createPIX({
-        nome: pessoais.nome_completo,
-        documento: pessoais.cpf,
-      });
 
       const scheduling = new Scheduling();
       scheduling.personalInfo = savedPersonalInfo;
@@ -68,6 +77,7 @@ export class SchedulingService {
 
   async validateCPF(cpf: string): Promise<{ cpf: string; nome: string; dataDeNascimento: string }> {
     try {
+
       const dadosUsuario = await this.paymentService.validateCPF(cpf);
   
       return {

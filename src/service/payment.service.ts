@@ -74,7 +74,7 @@ export class PaymentService {
     try {
       const response = await this.httpService.post(url, payload, {
         headers: {
-          'Authorization': `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI3YzViZmFjNy0yY2YyLTExZWYtYTM2NC00MjAxMGE2MDYwMGQiLCJpYXQiOjE3MTk1MDY4ODksImV4cCI6MTcxOTUwODY4OSwiZGF0YSI6eyJpZCI6IjdjNWJmYWM3LTJjZjItMTFlZi1hMzY0LTQyMDEwYTYwNjAwZCIsImNyZWF0ZWRBdCI6IjIwMjQtMDYtMTcgMTg6NDI6MjUiLCJhcHBfbmFtZSI6IlBvcnRhbCBDb25zdWx0YSBCcmFzIiwiYXBpX3ZlcnNpb24iOjIsInJlbW90ZUFkZHIiOiIyODA0OjI5MDQ6MTBlOjFhMzc6NWQyNTozN2M6NWRhNzplOGY0Iiwic3RhdHVzIjoiMSJ9fQ.KGgcmiKQRvZFI6G-qu6oPKdkfzMlRmxcV96bZ5OXE6s`, 
+          'Authorization': `Bearer ${accessToken}`, 
           'Content-Type': 'application/json'
         }
       }).toPromise();
@@ -106,16 +106,15 @@ export class PaymentService {
 
   async validateCPF(cpf: string): Promise<{ nome: string; dataDeNascimento: string }> {
     const url = `${this.baseUrl}/services/cpf?docNumber=${cpf}`;
-  
+
+    const accessToken = await this.generateToken();
     try {
-      const response = await this.httpService.post(url, {}, {
-        headers: {
-          'Authorization': `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI3YzViZmFjNy0yY2YyLTExZWYtYTM2NC00MjAxMGE2MDYwMGQiLCJpYXQiOjE3MTk1MDY4ODksImV4cCI6MTcxOTUwODY4OSwiZGF0YSI6eyJpZCI6IjdjNWJmYWM3LTJjZjItMTFlZi1hMzY0LTQyMDEwYTYwNjAwZCIsImNyZWF0ZWRBdCI6IjIwMjQtMDYtMTcgMTg6NDI6MjUiLCJhcHBfbmFtZSI6IlBvcnRhbCBDb25zdWx0YSBCcmFzIiwiYXBpX3ZlcnNpb24iOjIsInJlbW90ZUFkZHIiOiIyODA0OjI5MDQ6MTBlOjFhMzc6NWQyNTozN2M6NWRhNzplOGY0Iiwic3RhdHVzIjoiMSJ9fQ.KGgcmiKQRvZFI6G-qu6oPKdkfzMlRmxcV96bZ5OXE6s`,
-          'Content-Type': 'application/json'
-        }
-      }).toPromise();
-  
-      console.log("response", response);
+       const response = await this.httpService.get(url, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    }).toPromise();
   
       const dataDeNascimento = new Date(response.data.BirthDate).toISOString().split('T')[0];
   

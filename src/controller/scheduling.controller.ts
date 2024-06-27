@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body, InternalServerErrorException } from '@nestjs/common';
 import { SchedulingService } from 'src/service/scheduling.service';
-//import { CreateSchedulingDto } from './dto/create-scheduling.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('scheduling')
@@ -10,15 +9,20 @@ export class SchedulingController {
 
   @Post('process-cpf')
   @ApiOperation({ summary: 'Process CPF' })
-  @ApiBody({ type: String })
   @ApiResponse({ status: 200, description: 'CPF processed successfully.' })
-  processCPF(@Body() cpf: string) {
-    return this.schedulingService.validateCPF(cpf);
+  async processCPF(@Body() body: { cpf: string }) {
+    const { cpf } = body; 
+    try {
+      const result = await this.schedulingService.validateCPF(cpf);
+      return result;
+    } catch (error) {
+      console.error('Erro ao processar CPF:', error);
+      throw new InternalServerErrorException('Erro ao processar CPF');
+    }
   }
 
   @Post('create-transaction')
   @ApiOperation({ summary: 'Create transaction' })
-  //@ApiBody({ type: CreateSchedulingDto })
   @ApiResponse({ status: 201, description: 'Transaction created successfully.' })
   createTransaction(@Body() createSchedulingDto: any) {
     return this.schedulingService.create(createSchedulingDto);
