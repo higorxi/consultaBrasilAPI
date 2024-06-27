@@ -7,4 +7,7 @@ export const BCRYPT_HASH_ROUND = parseInt(hashRoundString, 10);
 export const PORT = process.env.PORT || 3000;
 export const {
   SECRET_KEY,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  VALUE_SCHEDULING
 } = process.env;

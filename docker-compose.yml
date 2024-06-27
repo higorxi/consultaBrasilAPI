@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   app:
-    container_name: cidade-alta-backend
+    container_name: consulta-brasil-backend
     build: .
     env_file:
       .env

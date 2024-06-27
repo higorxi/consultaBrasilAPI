@@ -1,38 +1,10 @@
-import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './configs/typeorm.config';
-import { UserModule } from './modules/user.modules';
-import { AuthModule } from './modules/auth.modules';
-import { BadgeModule } from './modules/badge.modules';
-import { GameScoreModule } from './modules/gameScore.modules';
-import { AuthMiddleware } from './middleware/auth';
-import { AdminMiddleware } from './middleware/adminMiddleware';
+import { SchedulingModule } from './modules/scheduling.modules';
+import { PaymentModule } from './modules/payment.modules';
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot(typeOrmConfig),
-    UserModule,
-    AuthModule,
-    BadgeModule,
-    GameScoreModule,
-  ],
+  imports: [TypeOrmModule.forRoot(typeOrmConfig), SchedulingModule, PaymentModule],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AdminMiddleware)
-      .forRoutes(
-      { path : 'users', method: RequestMethod.GET},
-      { path : 'badges', method: RequestMethod.POST},
-    );
-
-    consumer
-      .apply(AuthMiddleware)
-      .exclude(
-        { path: 'users/create', method: RequestMethod.POST },
-        { path: 'auth/login', method: RequestMethod.POST },
-        { path: 'auth', method: RequestMethod.GET }
-      ) 
-      .forRoutes('*'); 
-  }
-}
+export class AppModule {}
