@@ -1,48 +1,53 @@
-import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import * as jwt from 'jsonwebtoken';
-import { SECRET_KEY } from 'src/configs/general.config';
-import { validate as isUUID } from 'uuid';
 
 @Injectable()
-export class WebhookMiddleware implements NestMiddleware {
+export class VerifySignatureMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
+    const verifySignatureHeader = req.headers['verify-signature'];
+    if (!verifySignatureHeader || typeof verifySignatureHeader !== 'string') {
+      return res.status(401).json({ message: 'Missing or invalid Verify-Signature header' });
+    }
+
+    const verifySignatureParts = this.splitHeader(verifySignatureHeader);
+
+    let timestamp: string | undefined;
+    let vsignature: string | undefined;
+
+    verifySignatureParts.forEach(part => {
+      const [key, value] = part.trim().split('=');
+      if (key === 't') {
+        timestamp = value;
+      } else if (key === 'vsign') {
+        vsignature = value;
+      }
+    });
+
     const authHeader = req.headers.authorization;
-
-    if (!authHeader) {
-      throw new UnauthorizedException('Token not provided');
+    if (!authHeader || typeof authHeader !== 'string') {
+      return res.status(401).json({ message: 'Missing or invalid Authorization header' });
     }
 
-    const parts = authHeader.split(' ');
-
-    if (parts.length !== 2) {
-      throw new UnauthorizedException('Invalid token');
+    const authParts = authHeader.split(' ');
+    if (authParts.length !== 2 || authParts[0].toLowerCase() !== 'basic') {
+      return res.status(401).json({ message: 'Invalid Authorization header format' });
     }
 
-    const [scheme, token] = parts;
+    const base64Credentials = authParts[1];
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+    const [username, password] = credentials.split(':'); 
 
-    if (scheme.toLowerCase() !== 'bearer') {
-      throw new UnauthorizedException('Token malformatted');
-    }
 
-    try {
-      const decodedToken = jwt.verify(token, SECRET_KEY) as jwt.JwtPayload; 
+    console.log('Timestamp:', timestamp);
+    console.log('VSignature:', vsignature);
+    console.log('Username:', username); 
+    console.log('Senha:', password);
 
-      if (!decodedToken.sub) {
-        throw new UnauthorizedException('Invalid token');
-      }
+    // Passar para o próximo middleware ou rota
+    next();
+  }
 
-      const path = req.baseUrl; 
-      const parts = path.split('/');
-      const userId = parts[parts.length - 1]; 
-
-      if (isUUID(userId) && userId !== decodedToken.sub) {
-        throw new UnauthorizedException('Unauthorized access');
-      }
-
-      next();
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
-    }
+  private splitHeader(header: string): string[] {
+    return header.split(',');
   }
 }
