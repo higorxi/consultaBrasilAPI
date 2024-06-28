@@ -1,4 +1,4 @@
-import { Controller,Post, Body,} from '@nestjs/common';
+import { Controller,Post, Body, HttpCode,} from '@nestjs/common';
 import { SchedulingService } from 'src/service/scheduling.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
 import { PaymentService } from 'src/service/payment.service';
@@ -11,12 +11,22 @@ export class PaymentController {
   ) {}
 
   @Post('webhookPix')
+  @ApiOperation({ summary: 'Process Webhook' })
+  @ApiBody({ type: String })
+  @ApiResponse({ status: 200, description: 'Webhook processed successfully.' })
+  @HttpCode(200)
+  async processWebhook(@Body() response: any) {
+    const { requestBody } = response
+    await this.paymentService.processWebhook(requestBody);
+    return;
+  }
+
+  @Post('schedulingRefund')
   @ApiOperation({ summary: 'Process CPF' })
   @ApiBody({ type: String })
   @ApiResponse({ status: 200, description: 'CPF processed successfully.' })
-  processCPF(@Body() response: any) {
+  processRefund(@Body() response: any) {
     const { requestBody } = response
-    console.log('cheguei aqui', response)
     return this.paymentService.processWebhook(requestBody);
   }
 

@@ -135,7 +135,7 @@ export class PaymentService {
 
   async processWebhook(responseBody: any): Promise<any> {
     try {
- 
+      
       const externalId = responseBody.external_id;
 
       const payment = await this.paymentRepository.findOneBy({id: externalId});
@@ -162,7 +162,6 @@ export class PaymentService {
         status: 200,
         message: 'Webhook processed successfully',
       };
-      throw new Error('Erro ao processar webhook');
     }
   }
 

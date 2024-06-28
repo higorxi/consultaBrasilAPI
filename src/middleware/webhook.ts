@@ -1,5 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { USERNAME_WEBHOOK, PASSWORD_WEBHOOK } from 'src/configs/general.config';
 
 @Injectable()
 export class VerifySignatureMiddleware implements NestMiddleware {
@@ -35,15 +36,17 @@ export class VerifySignatureMiddleware implements NestMiddleware {
 
     const base64Credentials = authParts[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
-    const [username, password] = credentials.split(':'); 
+    const [username, password] = credentials.split(':');
 
-
+    console.log('username', username)
+    console.log('password', password)
     console.log('Timestamp:', timestamp);
     console.log('VSignature:', vsignature);
-    console.log('Username:', username); 
-    console.log('Senha:', password);
 
-    // Passar para o próximo middleware ou rota
+    if (username !== USERNAME_WEBHOOK || password !== PASSWORD_WEBHOOK) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
     next();
   }
 
