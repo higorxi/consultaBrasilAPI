@@ -24,8 +24,11 @@ export class SchedulingController {
   @Post('create-transaction')
   @ApiOperation({ summary: 'Create transaction' })
   @ApiResponse({ status: 201, description: 'Transaction created successfully.' })
-  createTransaction(@Body() createSchedulingDto: any) {
-    return this.schedulingService.create(createSchedulingDto);
+  async createTransaction(@Body() createSchedulingDto: any) {
+    
+    const response = await this.schedulingService.create(createSchedulingDto)
+    
+    return response;
   }
 
 }

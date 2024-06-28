@@ -57,13 +57,13 @@ export class SchedulingService {
       const scheduling = new Scheduling();
       scheduling.personalInfo = savedPersonalInfo;
       scheduling.preference = savedPreference;
-      scheduling.payment = pixData;
+      scheduling.payment = pixData.paymentSave;
 
       await this.schedulingRepository.save(scheduling);
 
       return {
-        image: pixData.base64image,
-        copiaCola: pixData.emvqrcps,
+        image: pixData.image,
+        copiaCola: pixData.copiaCola,
       };
     }
   }

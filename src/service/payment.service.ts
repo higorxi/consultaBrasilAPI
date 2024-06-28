@@ -50,7 +50,7 @@ export class PaymentService {
     }
   }
 
-  async createPIX({ nome, documento }: { nome: string; documento: string }): Promise<any> {
+  async createPIX({ nome, documento }: { nome: string; documento: string }): Promise<{ image: string; copiaCola: string; paymentSave: Payment }> {
 
     const newPayment = new Payment();
     newPayment.amount = VALUE_SCHEDULING;
@@ -97,7 +97,11 @@ export class PaymentService {
 
       const paymentSave = await this.paymentRepository.save(savedPayment); 
 
-      return paymentSave;
+      return {
+        image: base64image,
+        copiaCola: emvqrcps,
+        paymentSave: paymentSave
+      };
     } catch (error) {
       console.error("error:", error)
       throw new Error(`Erro ao gerar QR Code PIX: ${error.message}`);
