@@ -1,33 +1,23 @@
 import { Controller,Post, Body,} from '@nestjs/common';
 import { SchedulingService } from 'src/service/scheduling.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import { PaymentService } from 'src/service/payment.service';
 
 @ApiTags('payment')
 @Controller('payment')
 export class PaymentController {
-  constructor(private readonly schedulingService: SchedulingService) {}
+  constructor(private readonly schedulingService: SchedulingService,
+    private readonly paymentService: PaymentService
+  ) {}
 
-  @Post('payment-cpf')
+  @Post('webhookPix')
   @ApiOperation({ summary: 'Process CPF' })
   @ApiBody({ type: String })
   @ApiResponse({ status: 200, description: 'CPF processed successfully.' })
-  processCPF(@Body() cpf: string) {
-    return //this.schedulingService.processCPF(cpf);
+  processCPF(@Body() response: any) {
+    const { requestBody } = response
+    console.log('cheguei aqui', response)
+    return this.paymentService.processWebhook(requestBody);
   }
 
-  @Post('payment-transaction')
-  @ApiOperation({ summary: 'Create transaction' })
-  //@ApiBody({ type: CreateSchedulingDto })
-  @ApiResponse({ status: 201, description: 'Transaction created successfully.' })
-  createTransaction(@Body() createSchedulingDto: any) {
-    return //this.schedulingService.create(createSchedulingDto);
-  }
-
-  @Post('payment')
-  @ApiOperation({ summary: 'Create transaction' })
-  //@ApiBody({ type: CreateSchedulingDto })
-  @ApiResponse({ status: 201, description: 'Transaction created successfully.' })
-  createPIX(@Body() createPIX: any) {
-    return //this.schedulingService.createPIXTESTE(createPIX);
-  }
 }

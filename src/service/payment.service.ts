@@ -2,8 +2,9 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import { CLIENT_ID, CLIENT_SECRET, VALUE_SCHEDULING} from 'src/configs/general.config';
+import { CLIENT_ID, CLIENT_SECRET, VALUE_SCHEDULING, SECRET_BOT_KEY} from 'src/configs/general.config';
 import { Payment } from 'src/entity/payment.entity';
+import { Scheduling } from 'src/entity/scheduling.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -13,6 +14,8 @@ export class PaymentService {
   constructor(private readonly httpService: HttpService,
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
+    @InjectRepository(Scheduling)
+    private readonly schedulingRepository: Repository<Scheduling>,
   ) {}
 
   async generateToken(): Promise<string> {
@@ -81,23 +84,20 @@ export class PaymentService {
 
       const {
         transactionId,
-        external_id,
-        entity,
         status,
-        amount,
-        calendar,
-        debtor,
         additionalInformation,
         emvqrcps,
         base64image
       } = response.data;
 
-
+    
       savedPayment.transactionId = transactionId;
       savedPayment.paymentStatus = status;
       savedPayment.additionalInformationValue = additionalInformation.value;
 
-      return this.paymentRepository.save(savedPayment); 
+      const paymentSave = await this.paymentRepository.save(savedPayment); 
+
+      return paymentSave;
     } catch (error) {
       console.error("error:", error)
       throw new Error(`Erro ao gerar QR Code PIX: ${error.message}`);
@@ -125,6 +125,79 @@ export class PaymentService {
     } catch (error) {
       console.error('Erro ao validar CPF:', error);
       throw new Error('Erro ao validar CPF');
+    }
+  }
+
+
+  async processWebhook(responseBody: any): Promise<any> {
+    try {
+ 
+      const externalId = responseBody.external_id;
+
+      const payment = await this.paymentRepository.findOneBy({id: externalId});
+
+      if (!payment) {
+        throw new Error('Payment not found');
+      }
+
+      payment.paymentStatus = responseBody.transactionType
+
+      await this.paymentRepository.save(payment);
+
+      if (responseBody.transactionType === 'RECEIVEPIX') {
+        this.activateTheBot(responseBody);
+      }
+
+      return {
+        status: 200,
+        message: 'Webhook processed successfully',
+      };
+    } catch (error) {
+      console.error('Erro ao processar webhook:', error);
+      return {
+        status: 200,
+        message: 'Webhook processed successfully',
+      };
+      throw new Error('Erro ao processar webhook');
+    }
+  }
+
+
+  async activateTheBot(responseWebhook: any): Promise<string> {
+    const botSecret = SECRET_BOT_KEY; 
+
+    const authHeader = `Bearer ${botSecret}`;
+
+    const url = 'http:localhost:3001/scheduling/startScheduling';
+
+    const infosPayment = await this.paymentRepository.findOneBy({id: responseWebhook.external_id});
+    
+    const userInfos = await this.schedulingRepository.findOne({
+      where: {
+        payment: {
+          id: infosPayment.id,
+        },
+      },
+      relations: ['preference', 'personalInfo', 'payment'],
+    });
+
+    console.log("userInfos", userInfos)
+
+    try {
+      const response = await axios.post(
+        url,
+        userInfos,
+        {
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }
+      );
+
+      return;
+    } catch (error) {
+      throw new Error(`Erro ao enviar informações ao bot: ${error.message}`);
     }
   }
 

@@ -9,5 +9,6 @@ export const {
   SECRET_KEY,
   CLIENT_ID,
   CLIENT_SECRET,
-  VALUE_SCHEDULING
+  VALUE_SCHEDULING,
+  SECRET_BOT_KEY
 } = process.env;

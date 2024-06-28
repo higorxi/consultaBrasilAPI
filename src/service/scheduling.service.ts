@@ -18,14 +18,6 @@ export class SchedulingService {
     private readonly paymentService: PaymentService,
   ) {}
 
-
-  async teste(any: any) {
-    const dadosUsuario = await this.paymentService.generateToken()
-
-  }
-
-
-
   async create(
     createSchedulingDto: any,
   ): Promise<{ image: string; copiaCola: string }> {
@@ -36,7 +28,8 @@ export class SchedulingService {
         nome: pessoais.nome_completo,
         documento: pessoais.cpf,
       });
-      
+
+
       const personalInfo = new PersonalInfo();
       personalInfo.estado = pessoais.estado;
       personalInfo.cidade = pessoais.cidade;
@@ -61,11 +54,11 @@ export class SchedulingService {
 
       const savedPreference = await this.preferenceRepository.save(preference);
 
-
       const scheduling = new Scheduling();
       scheduling.personalInfo = savedPersonalInfo;
       scheduling.preference = savedPreference;
       scheduling.payment = pixData;
+
       await this.schedulingRepository.save(scheduling);
 
       return {

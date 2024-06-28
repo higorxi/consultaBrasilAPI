@@ -19,5 +19,4 @@ export class Scheduling {
   @OneToOne(() => Payment)
   @JoinColumn()
   payment: Payment;
-  newScheduling: Payment[];
 }
