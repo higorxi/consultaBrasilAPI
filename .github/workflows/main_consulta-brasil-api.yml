@@ -31,7 +31,7 @@ jobs:
       with:
         push: true
         tags: cidadealta.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_e9af43311bd84aff817e6d46085d807b }}/consulta-brasil-api:${{ github.sha }}
-        file: ./Dockerfile
+        file: ./Dockerfile.azure
 
   deploy:
     runs-on: ubuntu-latest
