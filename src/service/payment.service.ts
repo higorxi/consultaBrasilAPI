@@ -204,15 +204,31 @@ export class PaymentService {
 
   async checkStatus(paymentId: any): Promise<any> {
     try {
-      const payment = await this.paymentRepository.findOneBy({id: paymentId});
 
-      if (!payment) {
-        throw new Error('Payment not found');
+      const userInfos = await this.schedulingRepository.findOne({
+        where: {
+          payment: {
+            id: paymentId,
+          },
+        },
+        relations: ['preference', 'personalInfo', 'payment'],
+      });
+
+      const payment = userInfos.payment
+      const personalInfo = userInfos.personalInfo
+
+      const formatedReturn ={
+        amount: payment.amount,
+        paymentStatus: payment.paymentStatus,
+        id_protocolo: payment.id,
+        nome: personalInfo.nomeCompleto,
+        email: personalInfo.email,
+        telefone: personalInfo.telefone,
+        serviço: personalInfo.viaRg,
       }
 
       if (payment.paymentStatus === 'RECEIVEPIX') {
-        const { id, ...paymentWithoutId } = payment;
-        return paymentWithoutId;
+        return formatedReturn;
       } else {
         return { status: payment.paymentStatus };
       }
