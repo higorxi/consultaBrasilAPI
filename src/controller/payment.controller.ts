@@ -30,6 +30,14 @@ export class PaymentController {
     return paymentStatus;
   }
 
+  @Get('teste')
+  @ApiOperation({ summary: 'Checking Status for Payment' })
+  @ApiParam({ name: 'transactionalId', type: String })
+  @ApiResponse({ status: 200, description: 'Checking Status for Payment.' })
+  async teste(@Param('teste') teste: string) {
+    return 'DEU CERTO';
+  }
+
   @Post('schedulingRefund')
   @ApiOperation({ summary: 'Process CPF' })
   @ApiBody({ type: String })
