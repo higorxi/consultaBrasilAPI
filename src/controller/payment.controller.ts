@@ -1,4 +1,4 @@
-import { Controller,Post, Body, HttpCode,} from '@nestjs/common';
+import { Controller,Post, Body, HttpCode, Get, Param,} from '@nestjs/common';
 import { SchedulingService } from 'src/service/scheduling.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
 import { PaymentService } from 'src/service/payment.service';
@@ -19,6 +19,15 @@ export class PaymentController {
     const { requestBody } = response
     await this.paymentService.processWebhook(requestBody);
     return;
+  }
+
+  @Get('checkStatusPayment/:PaymentId')
+  @ApiOperation({ summary: 'Checking Status for Payment' })
+  @ApiParam({ name: 'transactionalId', type: String })
+  @ApiResponse({ status: 200, description: 'Checking Status for Payment.' })
+  async checkStatusPayment(@Param('PaymentId') PaymentId: string) {
+    const paymentStatus = await this.paymentService.checkStatus(PaymentId);
+    return paymentStatus;
   }
 
   @Post('schedulingRefund')

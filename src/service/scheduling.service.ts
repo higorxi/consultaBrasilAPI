@@ -20,7 +20,7 @@ export class SchedulingService {
 
   async create(
     createSchedulingDto: any,
-  ): Promise<{ image: string; copiaCola: string; amount: string }> {
+  ): Promise<{ image: string; copiaCola: string; amount: string; idPaymentScheduling: string }> {
     {
       const { pessoais, agendamento } = createSchedulingDto;
 
@@ -64,7 +64,8 @@ export class SchedulingService {
       return {
         image: pixData.image,
         copiaCola: pixData.copiaCola,
-        amount: pixData.payment.amount
+        amount: pixData.paymentSave.amount,
+        idPaymentScheduling: pixData.paymentSave.id
       };
     }
   }

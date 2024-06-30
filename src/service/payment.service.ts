@@ -184,8 +184,6 @@ export class PaymentService {
       relations: ['preference', 'personalInfo', 'payment'],
     });
 
-    console.log("userInfos", userInfos)
-
     try {
       const response = await axios.post(
         url,
@@ -201,6 +199,26 @@ export class PaymentService {
       return;
     } catch (error) {
       throw new Error(`Erro ao enviar informações ao bot: ${error.message}`);
+    }
+  }
+
+  async checkStatus(paymentId: any): Promise<any> {
+    try {
+      const payment = await this.paymentRepository.findOneBy({id: paymentId});
+
+      if (!payment) {
+        throw new Error('Payment not found');
+      }
+
+      if (payment.paymentStatus === 'RECEIVEPIX') {
+        const { id, ...paymentWithoutId } = payment;
+        return paymentWithoutId;
+      } else {
+        return { status: payment.paymentStatus };
+      }
+    } catch (error) {
+      console.error('Erro ao checar status de Pagamento:', error);
+      throw new Error(`Erro ao checar status de Pagamento: ${error.message}`);
     }
   }
 
