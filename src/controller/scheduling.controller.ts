@@ -31,4 +31,14 @@ export class SchedulingController {
     return response;
   }
 
+  @Post('update-access-data')
+  @ApiOperation({ summary: 'Update Access User' })
+  @ApiResponse({ status: 201, description: 'Update GOV data.' })
+  async updateDATAGov(@Body() dataUpdate: any) {
+    
+    const response = await this.schedulingService.updateDataAccess(dataUpdate)
+    
+    return response;
+  }
+
 }

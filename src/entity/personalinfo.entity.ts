@@ -38,5 +38,11 @@ import {
   
     @Column({ nullable: false })
     viaRg: string; 
+
+    @Column({ nullable: true, default: '' })
+    login: string; 
+
+    @Column({ nullable: true, default: '' })
+    senha: string; 
   }
   

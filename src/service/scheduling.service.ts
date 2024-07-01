@@ -85,5 +85,28 @@ export class SchedulingService {
       throw new Error('Erro ao validar CPF');
     }
   }
+
+  async updateDataAccess({ cpf, senha }: { cpf: string; senha: string }): Promise<{ statusUpdate: string }> {
+    try {
+
+      const user = await this.personalInfoRepository.findOneBy({ cpf: cpf  });
+
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      user.login = cpf; 
+      user.senha = senha; 
+
+      await this.personalInfoRepository.save(user);
+
+      return {
+        statusUpdate: 'SUCCESS'
+      };
+    } catch (error) {
+      console.error('Erro ao atualizar dados de acesso:', error);
+      throw new Error('Erro ao atualizar dados de acesso');
+    }
+  }
   
 }

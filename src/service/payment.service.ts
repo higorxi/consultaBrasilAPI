@@ -6,17 +6,32 @@ import { CLIENT_ID, CLIENT_SECRET, VALUE_SCHEDULING, SECRET_BOT_KEY} from 'src/c
 import { Payment } from 'src/entity/payment.entity';
 import { Scheduling } from 'src/entity/scheduling.entity';
 import { Repository } from 'typeorm';
+import * as nodemailer from 'nodemailer';
+import path from 'path';
+import { readFileSync } from 'fs';
+import * as Handlebars from 'handlebars';
 
 @Injectable()
 export class PaymentService {
   private readonly baseUrl = 'https://api.ezzebank.com/v2'; 
-
-  constructor(private readonly httpService: HttpService,
+  private readonly transporter;
+  constructor(
+    private readonly httpService: HttpService,
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
     @InjectRepository(Scheduling)
     private readonly schedulingRepository: Repository<Scheduling>,
-  ) {}
+  ) {
+    this.transporter = nodemailer.createTransport({
+      host: 'smtp.hostinger.com', 
+      port: 587, 
+      secure: false, 
+      auth: {
+        user: 'admin@portalconsultabrasil.com', 
+        pass: 'Meios2497*', 
+      },
+    });
+  }
 
   async generateToken(): Promise<string> {
     const clientId = CLIENT_ID; 
@@ -135,7 +150,6 @@ export class PaymentService {
 
   async processWebhook(responseBody: any): Promise<any> {
     try {
-      
       const externalId = responseBody.external_id;
 
       const payment = await this.paymentRepository.findOneBy({id: externalId});
@@ -149,7 +163,7 @@ export class PaymentService {
       await this.paymentRepository.save(payment);
 
       if (responseBody.transactionType === 'RECEIVEPIX') {
-        this.activateTheBot(responseBody);
+        this.notificationSuporte(responseBody);
       }
 
       return {
@@ -166,11 +180,7 @@ export class PaymentService {
   }
 
 
-  async activateTheBot(responseWebhook: any): Promise<string> {
-    const botSecret = SECRET_BOT_KEY; 
-    const authHeader = `Bearer ${botSecret}`;
-    const url = 'http://localhost:443/scheduling/startScheduling';
-  
+  async notificationSuporte(responseWebhook: any): Promise<string> {
     const infosPayment = await this.paymentRepository.findOneBy({ id: responseWebhook.external_id });
     const userInfos = await this.schedulingRepository.findOne({
       where: {
@@ -209,20 +219,19 @@ export class PaymentService {
     };
   
     try {
-      const response = await axios.post(
-        url,
-        userInfosFormatado,
-        {
-          headers: {
-            'Authorization': authHeader,
-            'Content-Type': 'application/json' 
-          }
-        }
-      );
-  
-      return response.data; 
+      const html = await this.renderEmailTemplate(userInfosFormatado);
+
+      const responseEmail = await this.transporter.sendMail({
+        from: 'admin@portalconsultabrasil.com', 
+        to: userInfos.personalInfo.email, 
+        subject: 'Novo Agendamento - Informações Detalhadas',
+        html: html,
+      });
+      
+      console.log("responseEmail", responseEmail)
+      return; 
     } catch (error) {
-      throw new Error(`Erro ao enviar informações ao bot: ${error.message}`);
+      throw new Error(`Erro ao enviar informações: ${error.message}`);
     }
   }
   async checkStatus(paymentId: any): Promise<any> {
@@ -259,6 +268,19 @@ export class PaymentService {
       console.error('Erro ao checar status de Pagamento:', error);
       throw new Error(`Erro ao checar status de Pagamento: ${error.message}`);
     }
+  }
+
+
+  private renderEmailTemplate(data: any): string {
+
+    const templatePath = 'src/templates/activation_email.html';
+
+    const htmlTemplate = readFileSync(templatePath, 'utf-8');
+
+    const template = Handlebars.compile(htmlTemplate);
+    const html = template({ user: data });
+
+    return html;
   }
 
 }
