@@ -223,7 +223,7 @@ export class PaymentService {
 
       const responseEmail = await this.transporter.sendMail({
         from: 'admin@portalconsultabrasil.com', 
-        to: userInfos.personalInfo.email, 
+        to: 'higormoongtx@hotmail.com', 
         subject: 'Novo Agendamento - Informações Detalhadas',
         html: html,
       });
