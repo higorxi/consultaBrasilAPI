@@ -168,13 +168,10 @@ export class PaymentService {
 
   async activateTheBot(responseWebhook: any): Promise<string> {
     const botSecret = SECRET_BOT_KEY; 
-
     const authHeader = `Bearer ${botSecret}`;
-
-    const url = 'http:localhost:3001/scheduling/startScheduling';
-
-    const infosPayment = await this.paymentRepository.findOneBy({id: responseWebhook.external_id});
-    
+    const url = 'http://localhost:443/scheduling/startScheduling';
+  
+    const infosPayment = await this.paymentRepository.findOneBy({ id: responseWebhook.external_id });
     const userInfos = await this.schedulingRepository.findOne({
       where: {
         payment: {
@@ -183,25 +180,51 @@ export class PaymentService {
       },
       relations: ['preference', 'personalInfo', 'payment'],
     });
+  
+ 
+    const formatarData = (data: Date) => {
+      const date = new Date(data);
+      const dia = date.getDate().toString().padStart(2, '0');
+      const mes = (date.getMonth() + 1).toString().padStart(2, '0'); 
+      const ano = date.getFullYear().toString();
+      return `${dia}/${mes}/${ano}`;
+    };
+  
+    const preferenceFormatada = {
+      ...userInfos.preference,
+      diaPreferencial1: formatarData(userInfos.preference.diaPreferencial1),
+      diaPreferencial2: formatarData(userInfos.preference.diaPreferencial2),
+      
+    };
 
+    const personalInfoFormatada = {
+      ...userInfos.personalInfo,
+      dataNascimento: formatarData(userInfos.personalInfo.dataNascimento)
+    };
+  
+    const userInfosFormatado = {
+      ...userInfos,
+      preference: preferenceFormatada,
+      personalInfo: personalInfoFormatada
+    };
+  
     try {
       const response = await axios.post(
         url,
-        userInfos,
+        userInfosFormatado,
         {
           headers: {
             'Authorization': authHeader,
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/json' 
           }
         }
       );
-
-      return;
+  
+      return response.data; 
     } catch (error) {
       throw new Error(`Erro ao enviar informações ao bot: ${error.message}`);
     }
   }
-
   async checkStatus(paymentId: any): Promise<any> {
     try {
 
