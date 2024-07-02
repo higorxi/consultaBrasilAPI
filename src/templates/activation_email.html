@@ -122,6 +122,19 @@
       <td>Informação Adicional:</td>
       <td>{{ user.payment.additionalInformationValue }}</td>
     </tr>
+    <th colspan="3">Dados GOV Agendamento</th>
+    <tr>
+      <td>Login:</td>
+      <td>{{ user.personalInfo.login }}</td>
+    </tr>
+    <tr>
+      <td>Senha:</td>
+      <td>{{ user.personalInfo.senha }}</td>
+    </tr>
+    <tr>
+      <td>Contato:</td>
+      <td>{{ user.personalInfo.telefone }} ou {{ user.personalInfo.email }}</td>
+    </tr>
   </table>
   <p>Atenciosamente,</p>
   <p>Equipe, Consulta Brasil</p>
