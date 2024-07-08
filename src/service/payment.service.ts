@@ -161,7 +161,7 @@ export class PaymentService {
       payment.paymentStatus = responseBody.transactionType
 
       await this.paymentRepository.save(payment);
-
+      
       return {
         status: 200,
         message: 'Webhook processed successfully',
@@ -223,9 +223,15 @@ export class PaymentService {
         subject: 'Novo Agendamento - Informações Detalhadas',
         html: html,
       });
+
+      userInfos.payment.emailSent = true;
       
+      await this.paymentRepository.save(userInfos.payment);
       return; 
     } catch (error) {
+      userInfos.payment.emailSent = true;
+      userInfos.payment.emailFailureReason = error.message;
+      await this.paymentRepository.save(userInfos.payment);
       throw new Error(`Erro ao enviar informações: ${error.message}`);
     }
   }

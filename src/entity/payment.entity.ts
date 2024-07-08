@@ -1,8 +1,4 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-  } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class Payment {
@@ -26,4 +22,10 @@ export class Payment {
 
   @Column()
   additionalInformationValue: string;
+
+  @Column({ default: false })
+  emailSent: boolean; 
+
+  @Column({ nullable: true })
+  emailFailureReason: string; 
 }
