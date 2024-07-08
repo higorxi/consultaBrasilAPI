@@ -121,6 +121,10 @@ export class SchedulingService {
       user.senha = senha;
 
       await this.personalInfoRepository.save(user);
+      
+      if (scheduling.payment.paymentStatus === 'RECEIVEPIX') {
+        this.paymentService.notificationSuporte(scheduling.payment.id);
+      }
 
       return {
         statusUpdate: 'SUCCESS',

@@ -31,20 +31,17 @@ export class PaymentController {
   }
 
   @Get('teste')
-  @ApiOperation({ summary: 'Checking Status for Payment' })
-  @ApiParam({ name: 'transactionalId', type: String })
-  @ApiResponse({ status: 200, description: 'Checking Status for Payment.' })
-  async teste(@Param('teste') teste: string) {
-    return 'DEU CERTO';
+  async teste() {
+    return 'CONSULTA BRASIL API';
   }
 
   @Post('schedulingRefund')
   @ApiOperation({ summary: 'Process CPF' })
   @ApiBody({ type: String })
   @ApiResponse({ status: 200, description: 'CPF processed successfully.' })
-  processRefund(@Body() response: any) {
+  async processRefund(@Body() response: any) {
     const { requestBody } = response
-    return this.paymentService.processWebhook(requestBody);
+    return await this.paymentService.processWebhook(requestBody);
   }
 
 }

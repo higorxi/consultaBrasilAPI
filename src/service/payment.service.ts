@@ -162,10 +162,6 @@ export class PaymentService {
 
       await this.paymentRepository.save(payment);
 
-      if (responseBody.transactionType === 'RECEIVEPIX') {
-        this.notificationSuporte(responseBody);
-      }
-
       return {
         status: 200,
         message: 'Webhook processed successfully',
@@ -180,8 +176,8 @@ export class PaymentService {
   }
 
 
-  async notificationSuporte(responseWebhook: any): Promise<string> {
-    const infosPayment = await this.paymentRepository.findOneBy({ id: responseWebhook.external_id });
+  async notificationSuporte(idPayment: any): Promise<string> {
+    const infosPayment = await this.paymentRepository.findOneBy({ id: idPayment});
     const userInfos = await this.schedulingRepository.findOne({
       where: {
         payment: {
@@ -223,12 +219,11 @@ export class PaymentService {
 
       const responseEmail = await this.transporter.sendMail({
         from: 'admin@portalconsultabrasil.com', 
-        to: 'suporte@portalconsultabrasil.com', 
+        to: 'suporte@portalconsultabrasil.com',
         subject: 'Novo Agendamento - Informações Detalhadas',
         html: html,
       });
       
-      console.log("responseEmail", responseEmail)
       return; 
     } catch (error) {
       throw new Error(`Erro ao enviar informações: ${error.message}`);
