@@ -7,7 +7,7 @@ import {
 @Entity()
 export class Payment {
   @PrimaryGeneratedColumn('uuid')
-  id?: number;
+  id?: string;
 
   @Column()
   amount: string;

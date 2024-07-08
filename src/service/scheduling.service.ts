@@ -5,6 +5,7 @@ import { Scheduling } from 'src/entity/scheduling.entity';
 import { PersonalInfo } from 'src/entity/personalinfo.entity';
 import { Preference } from 'src/entity/preferences.entity';
 import { PaymentService } from './payment.service';
+import { Payment } from 'src/entity/payment.entity';
 
 @Injectable()
 export class SchedulingService {
@@ -16,11 +17,18 @@ export class SchedulingService {
     @InjectRepository(Preference)
     private readonly preferenceRepository: Repository<Preference>,
     private readonly paymentService: PaymentService,
+    @InjectRepository(Payment)
+    private readonly paymentRepository: Repository<Payment>,
   ) {}
 
   async create(
     createSchedulingDto: any,
-  ): Promise<{ image: string; copiaCola: string; amount: string; idPaymentScheduling: string }> {
+  ): Promise<{
+    image: string;
+    copiaCola: string;
+    amount: string;
+    idPaymentScheduling: string;
+  }> {
     {
       const { pessoais, agendamento } = createSchedulingDto;
 
@@ -28,7 +36,6 @@ export class SchedulingService {
         nome: pessoais.nome_completo,
         documento: pessoais.cpf,
       });
-
 
       const personalInfo = new PersonalInfo();
       personalInfo.estado = pessoais.estado;
@@ -65,16 +72,17 @@ export class SchedulingService {
         image: pixData.image,
         copiaCola: pixData.copiaCola,
         amount: pixData.paymentSave.amount,
-        idPaymentScheduling: pixData.paymentSave.id
+        idPaymentScheduling: pixData.paymentSave.id,
       };
     }
   }
 
-  async validateCPF(cpf: string): Promise<{ cpf: string; nome: string; dataDeNascimento: string }> {
+  async validateCPF(
+    cpf: string,
+  ): Promise<{ cpf: string; nome: string; dataDeNascimento: string }> {
     try {
-
       const dadosUsuario = await this.paymentService.validateCPF(cpf);
-  
+
       return {
         cpf: cpf,
         nome: dadosUsuario.nome,
@@ -86,27 +94,40 @@ export class SchedulingService {
     }
   }
 
-  async updateDataAccess({ cpf, senha }: { cpf: string; senha: string }): Promise<{ statusUpdate: string }> {
+  async updateDataAccess({
+    cpf,
+    senha,
+    id,
+  }: {
+    cpf: string;
+    senha: string;
+    id?: string;
+  }): Promise<{ statusUpdate: string }> {
     try {
+      const scheduling = await this.schedulingRepository.createQueryBuilder('scheduling')
+        .leftJoinAndSelect('scheduling.payment', 'payment')
+        .leftJoinAndSelect('scheduling.preference', 'preference')
+        .leftJoinAndSelect('scheduling.personalInfo', 'personalInfo')
+        .where('payment.id = :paymentId', { paymentId: id })
+        .getOne();
 
-      const user = await this.personalInfoRepository.findOneBy({ cpf: cpf  });
-
-      if (!user) {
-        throw new Error('Usuário não encontrado');
+      if (!scheduling) {
+        throw new Error('Agendamento não encontrado');
       }
 
-      user.login = cpf; 
-      user.senha = senha; 
+      const user = scheduling.personalInfo;
+
+      user.login = cpf;
+      user.senha = senha;
 
       await this.personalInfoRepository.save(user);
 
       return {
-        statusUpdate: 'SUCCESS'
+        statusUpdate: 'SUCCESS',
       };
     } catch (error) {
       console.error('Erro ao atualizar dados de acesso:', error);
       throw new Error('Erro ao atualizar dados de acesso');
     }
   }
-  
 }

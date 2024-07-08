@@ -7,7 +7,7 @@ import {
   @Entity()
   export class PersonalInfo {
     @PrimaryGeneratedColumn('uuid')
-    id?: number;
+    id?: string;
   
     @Column()
     estado: string;

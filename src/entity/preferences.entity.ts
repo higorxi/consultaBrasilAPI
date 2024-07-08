@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 @Entity()
 export class Preference {
   @PrimaryGeneratedColumn('uuid')
-  id?: number;
+  id?: string;
 
   @Column()
   postoAtendimento: string;
