@@ -1,11 +1,17 @@
-import { Controller, Post, Body, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Post, Body, InternalServerErrorException, Get } from '@nestjs/common';
 import { SchedulingService } from 'src/service/scheduling.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import { Scheduling } from 'src/entity/scheduling.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @ApiTags('scheduling')
 @Controller('scheduling')
 export class SchedulingController {
-  constructor(private readonly schedulingService: SchedulingService) {}
+  constructor(private readonly schedulingService: SchedulingService,
+  @InjectRepository(Scheduling)
+  private readonly schedulingRepository: Repository<Scheduling>,
+  ) {}
 
   @Post('process-cpf')
   @ApiOperation({ summary: 'Process CPF' })
@@ -41,4 +47,30 @@ export class SchedulingController {
     return response;
   }
 
+  @Get('triggerBot')
+  async triggerBOT(@Body() id: any) {
+    const scheduling = await this.schedulingRepository
+    .createQueryBuilder('scheduling')
+    .leftJoinAndSelect('scheduling.payment', 'payment')
+    .leftJoinAndSelect('scheduling.preference', 'preference')
+    .leftJoinAndSelect('scheduling.personalInfo', 'personalInfo')
+    .where('payment.id = :paymentId', { paymentId: id })
+    .getOne();
+    await this.schedulingService.triggerBOT(scheduling)
+    console.log("envie o trigger para o bot funcionar")
+    return 'FEITO';
+  }
+
+  @Post('/callback')
+  async updateStatusSchedulingBOT(@Body() body: any) {
+    const { result, error, id} = body
+    console.log("devolvi o resultado")
+    if (error) {
+      console.error(`Error received for request ${id}: ${error}`);
+      await this.schedulingService.updateSchedulingDatasBOT(id, 'error', error)
+    } else {
+      console.log(`Result received for request ${id}:`, result);
+      await this.schedulingService.updateSchedulingDatasBOT(id, 'success', result)
+    }
+  }
 }

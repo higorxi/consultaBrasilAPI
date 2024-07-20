@@ -1,9 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
 export class Payment {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @Column()
   amount: string;
@@ -28,4 +34,10 @@ export class Payment {
 
   @Column({ nullable: true })
   emailFailureReason: string; 
+
+  @Column({ type: 'boolean', nullable: true, default: null })
+  scheduledWithBOT: boolean | null;
+
+  @Column({default: null})
+  schedulingResult: string;
 }
