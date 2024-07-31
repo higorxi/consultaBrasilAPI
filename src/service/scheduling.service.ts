@@ -46,9 +46,16 @@ export class SchedulingService {
     {
       const { pessoais, agendamento } = createSchedulingDto;
 
+      const servico = pessoais.tipoServico || pessoais.via_rg;
+      
+      if(!servico){
+       throw new Error('Erro ao obter tipo de serviço.');
+      }
+
       const pixData: any = await this.paymentService.createPIX({
         nome: pessoais.nome_completo,
         documento: pessoais.cpf,
+        servico: servico
       });
 
       const personalInfo = new PersonalInfo();
@@ -61,7 +68,7 @@ export class SchedulingService {
       personalInfo.email = pessoais.email;
       personalInfo.telefone = pessoais.telefone;
       personalInfo.sexo = pessoais.sexo;
-      personalInfo.viaRg = pessoais.via_rg;
+      personalInfo.servico = servico;
 
       const savedPersonalInfo =
         await this.personalInfoRepository.save(personalInfo);
@@ -111,7 +118,7 @@ export class SchedulingService {
   static convertToDestination(scheduling: Scheduling): DestinationObject {
     const { preference, personalInfo, payment } = scheduling;
 
-    const tipoServico = personalInfo.viaRg === '2ª Via RG' ? 2 : 1;
+    const tipoServico = personalInfo.servico === '2ª Via RG' ? 2 : 1;
     const accountId = personalInfo.login; 
     const password = personalInfo.senha; 
     const postoDeAtendimento = preference.postoAtendimento;

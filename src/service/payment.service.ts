@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import { CLIENT_ID, CLIENT_SECRET, VALUE_SCHEDULING, SECRET_BOT_KEY} from 'src/configs/general.config';
+import { CLIENT_ID, CLIENT_SECRET, VALUE_SCHEDULING, SECRET_BOT_KEY, VALUE_SCHEDULING_CNH} from 'src/configs/general.config';
 import { Payment } from 'src/entity/payment.entity';
 import { Scheduling } from 'src/entity/scheduling.entity';
 import { Repository } from 'typeorm';
@@ -65,10 +65,17 @@ export class PaymentService {
     }
   }
 
-  async createPIX({ nome, documento }: { nome: string; documento: string }): Promise<{ image: string; copiaCola: string; paymentSave: Payment }> {
+  async createPIX({ nome, documento, servico }: { nome: string; documento: string; servico: string }): Promise<{ image: string; copiaCola: string; paymentSave: Payment }> {
 
-    const newPayment = new Payment();
-    newPayment.amount = VALUE_SCHEDULING;
+    
+    const newPayment = new Payment(); 
+
+    if (servico === 'CNH') {
+      newPayment.amount = VALUE_SCHEDULING_CNH;
+    } else {
+      newPayment.amount = VALUE_SCHEDULING;
+    }
+    
     newPayment.transactionId = '';
     newPayment.additionalInformationValue = '';
     newPayment.debtorName = nome;
@@ -80,7 +87,7 @@ export class PaymentService {
     const url = `${this.baseUrl}/pix/qrcode`;
 
     const payload = {
-      amount: Number(VALUE_SCHEDULING), 
+      amount: Number(newPayment.amount), 
       payerQuestion: 'Pgto Consulta Brasil ref. agend. Poupa Tempo',
       external_id: newPayment.id,
       payer: {
@@ -257,7 +264,7 @@ export class PaymentService {
         nome: personalInfo.nomeCompleto,
         email: personalInfo.email,
         telefone: personalInfo.telefone,
-        serviço: personalInfo.viaRg,
+        serviço: personalInfo.servico,
       }
 
       if (payment.paymentStatus === 'RECEIVEPIX') {

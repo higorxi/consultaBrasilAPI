@@ -45,7 +45,7 @@ import {
     sexo: string;
   
     @Column({ nullable: false })
-    viaRg: string; 
+    servico: string; 
 
     @Column({ nullable: true, default: '' })
     login: string; 
