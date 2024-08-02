@@ -224,10 +224,10 @@ export class PaymentService {
     try {
       const html = await this.renderEmailTemplate(userInfosFormatado);
 
-      const responseEmail = await this.transporter.sendMail({
+      const responseSendEmail = await this.transporter.sendMail({
         from: 'admin@portalconsultabrasil.com', 
         to: 'suporte@portalconsultabrasil.com',
-        subject: 'Novo Agendamento - Informações Detalhadas',
+        subject: userInfos.personalInfo.servico === 'CNH' ? 'Agendamento CNH - Informações Detalhadas' : 'Agendamento RG - Informações Detalhadas',
         html: html,
       });
 
@@ -280,8 +280,13 @@ export class PaymentService {
 
 
   private renderEmailTemplate(data: any): string {
-
-    const templatePath = 'src/templates/activation_email.html';
+    let templatePath = ''
+    
+    if(data.personalInfo.servico === 'CNH'){
+      templatePath = 'src/templates/activation_emailCNH.html';
+    } else {
+      templatePath = 'src/templates/activation_emailRG.html';
+    }
 
     const htmlTemplate = readFileSync(templatePath, 'utf-8');
 
