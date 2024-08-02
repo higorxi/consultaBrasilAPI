@@ -1,6 +1,19 @@
-import { Controller, Post, Body, InternalServerErrorException, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  InternalServerErrorException,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { SchedulingService } from 'src/service/scheduling.service';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { Scheduling } from 'src/entity/scheduling.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,16 +21,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 @ApiTags('scheduling')
 @Controller('scheduling')
 export class SchedulingController {
-  constructor(private readonly schedulingService: SchedulingService,
-  @InjectRepository(Scheduling)
-  private readonly schedulingRepository: Repository<Scheduling>,
+  constructor(
+    private readonly schedulingService: SchedulingService,
+    @InjectRepository(Scheduling)
+    private readonly schedulingRepository: Repository<Scheduling>,
   ) {}
 
   @Post('process-cpf')
   @ApiOperation({ summary: 'Process CPF' })
   @ApiResponse({ status: 200, description: 'CPF processed successfully.' })
   async processCPF(@Body() body: { cpf: string }) {
-    const { cpf } = body; 
+    const { cpf } = body;
     try {
       const result = await this.schedulingService.validateCPF(cpf);
       return result;
@@ -29,11 +43,13 @@ export class SchedulingController {
 
   @Post('create-transaction')
   @ApiOperation({ summary: 'Create transaction' })
-  @ApiResponse({ status: 201, description: 'Transaction created successfully.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Transaction created successfully.',
+  })
   async createTransaction(@Body() createSchedulingDto: any) {
-    
-    const response = await this.schedulingService.create(createSchedulingDto)
-    
+    const response = await this.schedulingService.create(createSchedulingDto);
+
     return response;
   }
 
@@ -41,36 +57,36 @@ export class SchedulingController {
   @ApiOperation({ summary: 'Update Access User' })
   @ApiResponse({ status: 201, description: 'Update GOV data.' })
   async updateDATAGov(@Body() dataUpdate: any) {
-    
-    const response = await this.schedulingService.updateDataAccess(dataUpdate)
-    
+    const response = await this.schedulingService.updateDataAccess(dataUpdate);
     return response;
   }
 
-  @Get('triggerBot')
-  async triggerBOT(@Body() id: any) {
+  @Get('datasScheduling/:id')
+  async triggerBOT(@Param('id') id: string) {
     const scheduling = await this.schedulingRepository
-    .createQueryBuilder('scheduling')
-    .leftJoinAndSelect('scheduling.payment', 'payment')
-    .leftJoinAndSelect('scheduling.preference', 'preference')
-    .leftJoinAndSelect('scheduling.personalInfo', 'personalInfo')
-    .where('payment.id = :paymentId', { paymentId: id })
-    .getOne();
-    await this.schedulingService.triggerBOT(scheduling)
-    console.log("envie o trigger para o bot funcionar")
-    return 'FEITO';
+      .createQueryBuilder('scheduling')
+      .leftJoinAndSelect('scheduling.payment', 'payment')
+      .leftJoinAndSelect('scheduling.preference', 'preference')
+      .leftJoinAndSelect('scheduling.personalInfo', 'personalInfo')
+      .where('payment.id = :paymentId', { paymentId: id })
+      .getOne();
+    return scheduling;
   }
 
   @Post('/callback')
   async updateStatusSchedulingBOT(@Body() body: any) {
-    const { result, error, id} = body
-    console.log("devolvi o resultado")
+    const { result, error, id } = body;
+    console.log('devolvi o resultado');
     if (error) {
       console.error(`Error received for request ${id}: ${error}`);
-      await this.schedulingService.updateSchedulingDatasBOT(id, 'error', error)
+      await this.schedulingService.updateSchedulingDatasBOT(id, 'error', error);
     } else {
       console.log(`Result received for request ${id}:`, result);
-      await this.schedulingService.updateSchedulingDatasBOT(id, 'success', result)
+      await this.schedulingService.updateSchedulingDatasBOT(
+        id,
+        'success',
+        result,
+      );
     }
   }
 }

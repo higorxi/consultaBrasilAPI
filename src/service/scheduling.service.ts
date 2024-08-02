@@ -70,6 +70,13 @@ export class SchedulingService {
       personalInfo.sexo = pessoais.sexo;
       personalInfo.servico = servico;
 
+      if (servico === 'CNH') {
+        personalInfo.extraInfo = {
+          categoria: pessoais.categoria,
+          deficiente: pessoais.deficiente
+        };
+      }
+
       const savedPersonalInfo =
         await this.personalInfoRepository.save(personalInfo);
 
@@ -238,11 +245,7 @@ export class SchedulingService {
       await this.personalInfoRepository.save(user);
 
       if (scheduling.payment.paymentStatus === 'RECEIVEPIX') {
-        if (BOT_ENABLE) {
-          await this.triggerBOT(scheduling);
-        } else {
         this.paymentService.notificationSuporte(scheduling.payment.id);
-      }
       }
 
       return {

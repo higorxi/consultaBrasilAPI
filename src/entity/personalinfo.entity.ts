@@ -47,6 +47,9 @@ import {
     @Column({ nullable: false })
     servico: string; 
 
+    @Column({ type: 'jsonb', nullable: true })
+    extraInfo: Record<string, any>; 
+
     @Column({ nullable: true, default: '' })
     login: string; 
 
