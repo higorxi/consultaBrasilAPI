@@ -30,18 +30,4 @@ export class PaymentController {
     return paymentStatus;
   }
 
-  @Get('teste')
-  async teste() {
-    return 'CONSULTA BRASIL API';
-  }
-
-  @Post('schedulingRefund')
-  @ApiOperation({ summary: 'Process CPF' })
-  @ApiBody({ type: String })
-  @ApiResponse({ status: 200, description: 'CPF processed successfully.' })
-  async processRefund(@Body() response: any) {
-    const { requestBody } = response
-    return await this.paymentService.processWebhook(requestBody);
-  }
-
 }

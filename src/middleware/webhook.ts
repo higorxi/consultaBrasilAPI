@@ -38,11 +38,6 @@ export class VerifySignatureMiddleware implements NestMiddleware {
     const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
     const [username, password] = credentials.split(':');
 
-    console.log('username', username)
-    console.log('password', password)
-    console.log('Timestamp:', timestamp);
-    console.log('VSignature:', vsignature);
-
     if (username !== USERNAME_WEBHOOK || password !== PASSWORD_WEBHOOK) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
