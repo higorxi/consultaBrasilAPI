@@ -7,7 +7,6 @@ import { Preference } from 'src/entity/preferences.entity';
 import { PaymentService } from './payment.service';
 import { Payment } from 'src/entity/payment.entity';
 import axios from 'axios';
-import { BOT_ENABLE } from 'src/configs/general.config';
 
 
 interface DestinationObject {
@@ -102,116 +101,6 @@ export class SchedulingService {
         amount: pixData.paymentSave.amount,
         idPaymentScheduling: pixData.paymentSave.id,
       };
-    }
-  }
-
-  async validateCPF(
-    cpf: string,
-  ): Promise<{ cpf: string; nome: string; dataDeNascimento: string }> {
-    try {
-      const dadosUsuario = await this.paymentService.validateCPF(cpf);
-
-      return {
-        cpf: cpf,
-        nome: dadosUsuario.nome,
-        dataDeNascimento: dadosUsuario.dataDeNascimento,
-      };
-    } catch (error) {
-      console.error('Erro ao validar CPF:', error);
-      throw new Error('Erro ao validar CPF');
-    }
-  }
-
-  static convertToDestination(scheduling: Scheduling): DestinationObject {
-    const { preference, personalInfo, payment } = scheduling;
-
-    const tipoServico = personalInfo.servico === '2ª Via RG' ? 2 : 1;
-    const accountId = personalInfo.login; 
-    const password = personalInfo.senha; 
-    const postoDeAtendimento = preference.postoAtendimento;
-    const dataDesejada1 = this.formatDate(preference.diaPreferencial1);
-    const dataDesejada2 = this.formatDate(preference.diaPreferencial2);
-    const preferredTimeOption1 = preference.turnoPreferencial1; 
-    const preferredTimeOption2 = preference.turnoPreferencial2; 
-    const numeroTelefone = personalInfo.telefone;
-    const idPayment = payment.id
-
-    return {
-      tipoServico,
-      accountId,
-      password,
-      postoDeAtendimento,
-      dataDesejada1,
-      dataDesejada2,
-      preferredTimeOption1,
-      preferredTimeOption2,
-      numeroTelefone,
-      idPayment
-    };
-  }
-
-  private static formatDate(dateString: Date): string {
-    const date = new Date(dateString);
-    const day = ('0' + date.getDate()).slice(-2);
-    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
-  
-
-  async triggerBOT(userInfosScheduling: Scheduling): Promise<boolean> {
-    const url = `https://bot-agendamento-cgahg3ajgve3e0fa.brazilsouth-01.azurewebsites.net/scheduling/start_scheduling`;
-
-    const dataSend = SchedulingService.convertToDestination(userInfosScheduling) 
-
-    try { 
-      const response = await axios.post(
-        url,
-        dataSend,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      return true;
-    } catch (error) {
-      throw new Error(`Erro ao enviar informações: ${error.message}`);
-    }
-  }
-
-  async updateSchedulingDatasBOT(id: string, option: string,  textResult: string): Promise<boolean> {
-    try {
-      const scheduling = await this.schedulingRepository
-        .createQueryBuilder('scheduling')
-        .leftJoinAndSelect('scheduling.payment', 'payment')
-        .leftJoinAndSelect('scheduling.preference', 'preference')
-        .leftJoinAndSelect('scheduling.personalInfo', 'personalInfo')
-        .where('payment.id = :paymentId', { paymentId: id })
-        .getOne();
-  
-      if (!scheduling) {
-        throw new Error('Agendamento não encontrado');
-      }
-  
-      if (option === 'success') {
-        scheduling.payment.scheduledWithBOT = true;
-        scheduling.payment.schedulingResult = textResult;
-      } else if (option === 'error') {
-        scheduling.payment.scheduledWithBOT = false;
-        scheduling.payment.schedulingResult = textResult;
-        this.paymentService.notificationSuporte(scheduling.payment.id);
-      } else {
-        throw new Error('Opção inválida');
-      }
-  
-      await this.schedulingRepository.save(scheduling);
-  
-      return true;
-    } catch (error) {
-      console.error('Erro ao atualizar dados de agendamento pelo bot:', error);
-      throw new Error('Erro ao atualizar dados de agendamento pelo bot');
     }
   }
 

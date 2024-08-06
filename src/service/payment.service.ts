@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import { CLIENT_ID, CLIENT_SECRET, VALUE_SCHEDULING, SECRET_BOT_KEY, VALUE_SCHEDULING_CNH} from 'src/configs/general.config';
+import { CLIENT_ID, CLIENT_SECRET, VALUE_SCHEDULING, VALUE_SCHEDULING_CNH} from 'src/configs/general.config';
 import { Payment } from 'src/entity/payment.entity';
 import { Scheduling } from 'src/entity/scheduling.entity';
 import { Repository } from 'typeorm';
@@ -130,31 +130,6 @@ export class PaymentService {
     }
   }
 
-  async validateCPF(cpf: string): Promise<{ nome: string; dataDeNascimento: string }> {
-    const url = `${this.baseUrl}/services/cpf?docNumber=${cpf}`;
-
-    const accessToken = await this.generateToken();
-    try {
-       const response = await this.httpService.get(url, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    }).toPromise();
-  
-      const dataDeNascimento = new Date(response.data.BirthDate).toISOString().split('T')[0];
-  
-      return {
-        nome: response.data.name,
-        dataDeNascimento: dataDeNascimento
-      };
-    } catch (error) {
-      console.error('Erro ao validar CPF:', error);
-      throw new Error('Erro ao validar CPF');
-    }
-  }
-
-
   async processWebhook(responseBody: any): Promise<any> {
     try {
       const externalId = responseBody.external_id;
@@ -224,7 +199,7 @@ export class PaymentService {
     try {
       const html = await this.renderEmailTemplate(userInfosFormatado);
 
-      const responseSendEmail = await this.transporter.sendMail({
+      await this.transporter.sendMail({
         from: 'admin@portalconsultabrasil.com', 
         to: 'suporte@portalconsultabrasil.com',
         subject: userInfos.personalInfo.servico === 'CNH' ? 'Agendamento CNH - Informações Detalhadas' : 'Agendamento RG - Informações Detalhadas',
